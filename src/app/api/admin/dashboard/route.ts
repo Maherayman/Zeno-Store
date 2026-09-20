@@ -8,7 +8,7 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const [orders, products, customers, pendingReviews, lowStockProducts, revenue, recentOrders, topProducts] = await Promise.all([
+  const [orders, products, customers, pendingReviews, lowStockProducts, revenue, recentOrders, soldItems] = await Promise.all([
     prisma.order.count(),
     prisma.product.count({ where: { isActive: true } }),
     prisma.user.count({ where: { role: "CUSTOMER" } }),
@@ -20,9 +20,28 @@ export async function GET() {
       take: 8
     }),
     prisma.order.aggregate({ where: { status: { not: "CANCELLED" } }, _sum: { total: true } }),
-    prisma.order.findMany({ where: { status: { not: "CANCELLED" } }, orderBy: { createdAt: "desc" }, take: 6, select: { id: true, orderNumber: true, total: true, status: true, createdAt: true, user: { select: { name: true, email: true } } } }),
-    prisma.orderItem.groupBy({ by: ["productId"], where: { productId: { not: null } }, _sum: { quantity: true }, orderBy: { _sum: { quantity: "desc" } }, take: 5 })
+    prisma.order.findMany({
+      where: { status: { not: "CANCELLED" } },
+      orderBy: { createdAt: "desc" },
+      take: 6,
+      select: { id: true, orderNumber: true, total: true, status: true, createdAt: true, user: { select: { name: true, email: true } } }
+    }),
+    prisma.orderItem.findMany({
+      where: { order: { status: { not: "CANCELLED" } }, productId: { not: null } },
+      select: { productId: true, quantity: true, product: { select: { name: true, sku: true } } },
+      take: 5000
+    })
   ]);
+
+  const grouped = new Map<string, { productId: string; name: string; sku: string; quantity: number }>();
+  for (const item of soldItems) {
+    if (!item.productId || !item.product) continue;
+    const current = grouped.get(item.productId);
+    if (current) current.quantity += item.quantity;
+    else grouped.set(item.productId, { productId: item.productId, name: item.product.name, sku: item.product.sku, quantity: item.quantity });
+  }
+
+  const topProducts = [...grouped.values()].sort((a, b) => b.quantity - a.quantity).slice(0, 5);
 
   return NextResponse.json({
     orders, products, customers, pendingReviews,
