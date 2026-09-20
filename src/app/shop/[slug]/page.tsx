@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 import { useParams, useRouter } from "next/navigation";
 
 type Product = {
@@ -19,6 +20,7 @@ export default function ProductPage() {
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
+  const { status } = useSession();
 
   useEffect(() => {
     fetch(`/api/products/${encodeURIComponent(params.slug)}`)
@@ -30,12 +32,13 @@ export default function ProductPage() {
   if (loading) return <main className="min-h-screen bg-zinc-950 p-10 text-white">جاري تحميل الساعة...</main>;
   if (!product) return <main className="min-h-screen bg-zinc-950 p-10 text-white">الساعة غير موجودة.</main>;
 
-  const addToCart = () => {
+  const addToCart = async () => {
     const cart = JSON.parse(localStorage.getItem("zeno-cart") ?? "[]");
     const existing = cart.find((item: { productId: string }) => item.productId === product.id);
     if (existing) existing.quantity = Math.min(existing.quantity + quantity, product.stock);
     else cart.push({ productId: product.id, name: product.name, price: Number(product.price), image: product.images[0]?.url ?? "", quantity });
     localStorage.setItem("zeno-cart", JSON.stringify(cart));
+    if (status === "authenticated") await fetch("/api/cart", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ items: cart.map((item: { productId: string; quantity: number }) => ({ productId: item.productId, quantity: item.quantity })) }) });
     setMessage("تمت إضافة الساعة للسلة ✓");
   };
 
