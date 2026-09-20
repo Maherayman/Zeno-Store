@@ -48,3 +48,25 @@
 .uploadButton{display:inline-flex!important;cursor:pointer;align-items:center;justify-content:center}
 .stickySave{position:sticky;bottom:78px;z-index:20;box-shadow:0 6px 20px rgba(0,0,0,.15)}
 @media(max-width:600px){.productAdminCard{grid-template-columns:78px 1fr}.productAdminImage{width:78px;height:100px}.productAdminActions button{flex:1}.imageInput{grid-template-columns:58px 1fr}.imagePreview{width:58px;height:58px}.stickySave{bottom:78px}.imageUploadRow{display:grid;grid-template-columns:1fr 1fr}.imageUploadRow small{grid-column:1/-1}}
+
+.ordersHeader{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:14px}
+.orderStats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.orderStats>div{background:#fff;border:1px solid var(--line);border-radius:15px;padding:12px}
+.orderStats strong{display:block;font-size:20px}.orderStats span{font-size:9px;color:var(--muted)}
+.orderCards{display:grid;gap:10px}
+.orderAdminCard{background:#fff;border:1px solid var(--line);border-radius:17px;padding:14px}
+.orderAdminCard.cancelled{opacity:.7}
+.orderCardTop,.orderCardBottom,.orderDelivery{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.orderCardTop strong{font-size:13px}.orderCardTop small{display:block;color:var(--muted);font-size:9px;margin-top:3px}
+.orderStatus{font-size:9px;padding:6px 9px;border-radius:999px;background:#eeeae1}
+.orderCustomer{display:grid;gap:4px;padding:12px 0;border-bottom:1px solid var(--line);font-size:11px}
+.orderCustomer span{color:var(--muted);font-size:10px}
+.orderItems{padding:10px 0;border-bottom:1px solid var(--line);display:grid;gap:7px}
+.orderItems div{display:flex;justify-content:space-between;gap:8px;font-size:10px}
+.orderItems b{white-space:nowrap}
+.orderDelivery{padding:10px 0;border-bottom:1px solid var(--line);align-items:flex-end}
+.orderDelivery small{font-size:9px;color:var(--muted)}.orderDelivery p{font-size:10px;margin:4px 0 0}
+.mapButton{background:var(--ink);color:#fff;border-radius:999px;padding:9px 11px;font-size:9px;white-space:nowrap}
+.orderCardBottom{padding-top:11px}.orderCardBottom>strong{font-size:15px}
+.orderCardBottom select{border:1px solid var(--line);border-radius:10px;background:#faf9f5;padding:9px;font:inherit;font-size:10px;max-width:150px}
+@media(max-width:600px){.ordersHeader{align-items:center}.orderStats strong{font-size:18px}.orderAdminCard{padding:12px}.orderCardBottom select{flex:1}.mapButton{padding:8px 9px}}
