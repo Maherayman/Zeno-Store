@@ -1,0 +1,11 @@
+"use client";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
+export default function WishlistPage(){
+ const {status}=useSession(); const [items,setItems]=useState<any[]>([]); const [loading,setLoading]=useState(true);
+ useEffect(()=>{if(status==="authenticated")fetch("/api/wishlist").then(r=>r.ok?r.json():{items:[]}).then(d=>setItems(d.items??[])).finally(()=>setLoading(false)); else if(status==="unauthenticated")setLoading(false)},[status]);
+ async function remove(id:string){await fetch("/api/wishlist",{method:"DELETE",headers:{"Content-Type":"application/json"},body:JSON.stringify({productId:id})});setItems(x=>x.filter(i=>i.productId!==id))}
+ if(status==="unauthenticated")return <main className="min-h-screen bg-zinc-950 p-10 text-white"><h1 className="text-4xl font-bold">المفضلة</h1><p className="mt-5 text-zinc-400">سجل دخولك عشان تحفظ ساعاتك المفضلة.</p><Link href="/login" className="mt-6 inline-block rounded-xl bg-amber-400 px-6 py-3 font-bold text-black">تسجيل الدخول</Link></main>;
+ return <main className="min-h-screen bg-zinc-950 px-5 py-10 text-white"><div className="mx-auto max-w-6xl"><h1 className="text-4xl font-bold">❤️ المفضلة</h1>{loading?<p className="mt-8 text-zinc-400">جاري التحميل...</p>:items.length===0?<p className="mt-8 text-zinc-400">لسه مفيش ساعات في المفضلة.</p>:<div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">{items.map(i=><article key={i.productId} className="overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900"><Link href={"/shop/"+i.product.slug}><div className="aspect-[4/3] bg-zinc-800">{i.product.images?.[0]&&<img src={i.product.images[0].url} alt={i.product.name} className="h-full w-full object-cover" />}</div><div className="p-5"><h2 className="text-xl font-semibold">{i.product.name}</h2><p className="mt-2 text-2xl font-bold">{Number(i.product.price).toLocaleString("en-EG")} EGP</p></div></Link><button onClick={()=>remove(i.productId)} className="m-5 mt-0 w-[calc(100%-2.5rem)] rounded-xl border border-zinc-700 px-4 py-3 text-red-400">إزالة من المفضلة</button></article>)}</div>}</div></main>
+}
