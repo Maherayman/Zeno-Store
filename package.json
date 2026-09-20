@@ -6,13 +6,18 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
     "next": "latest",
     "react": "latest",
     "react-dom": "latest",
-    "zod": "latest"
+    "zod": "latest",
+    "@prisma/client": "latest",
+    "next-auth": "latest"
   },
   "devDependencies": {
     "@types/node": "latest",
@@ -21,6 +26,8 @@
     "eslint": "latest",
     "eslint-config-next": "latest",
     "typescript": "latest",
-    "tailwindcss": "latest"
+    "tailwindcss": "latest",
+    "prisma": "latest",
+    "tsx": "latest"
   }
 }
