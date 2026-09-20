@@ -175,6 +175,8 @@ model Order {
   city            String?
   governorate     String?
   notes           String?
+  latitude        Float?
+  longitude       Float?
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
 
