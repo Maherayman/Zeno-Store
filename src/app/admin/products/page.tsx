@@ -34,6 +34,7 @@ export default function AdminProductsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
+  const [uploading, setUploading] = useState(false);
 
   async function loadProducts() {
     setLoading(true);
@@ -71,7 +72,7 @@ export default function AdminProductsPage() {
       description: form.description.trim(), brand: form.brand.trim(), category: form.category.trim(),
       price: Number(form.price), compareAtPrice: form.compareAtPrice ? Number(form.compareAtPrice) : undefined,
       stock: Number(form.stock), lowStockAt: Number(form.lowStockAt),
-      isActive: form.isActive, isFeatured: form.isFeatured, ...(editingId ? { images } : {})
+      isActive: form.isActive, isFeatured: form.isFeatured, images
     };
     try {
       const res = await fetch(editingId ? `/api/admin/products/${editingId}` : "/api/admin/products", {
@@ -89,7 +90,7 @@ export default function AdminProductsPage() {
     } finally { setSaving(false); }
   }
 
-  async function toggleActive(p: Product) {
+  async function uploadImage(file: File) {\n    setUploading(true); setMessage("");\n    try { const data = new FormData(); data.append("file", file); const res = await fetch("/api/admin/upload", { method: "POST", body: data }); const json = await res.json(); if (!res.ok) throw new Error(json.error || "Upload failed"); setForm(current => ({ ...current, images: [...current.images.filter(Boolean), json.url] })); setMessage("Image uploaded successfully."); } catch (e) { setMessage(e instanceof Error ? e.message : "Image upload failed."); } finally { setUploading(false); }\n  }\n\n  async function toggleActive(p: Product) {
     const res = await fetch(`/api/admin/products/${p.id}`, {
       method: "PATCH", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ isActive: !p.isActive })
