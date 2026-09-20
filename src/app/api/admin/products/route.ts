@@ -26,6 +26,15 @@ export async function POST(request: NextRequest) {
   const parsed = productSchema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: "Invalid product data", details: parsed.error.flatten() }, { status: 400 });
 
-  const product = await prisma.product.create({ data: parsed.data });
+  const { images, ...productData } = body;
+  const validated = productSchema.safeParse(productData);
+  if (!validated.success) return NextResponse.json({ error: "Invalid product data", details: validated.error.flatten() }, { status: 400 });
+  const product = await prisma.$transaction(async tx => {
+    const created = await tx.product.create({ data: validated.data });
+    if (Array.isArray(images) && images.length) {
+      await tx.productImage.createMany({ data: images.map((image: { url: string; alt?: string; sortOrder?: number }, i: number) => ({ productId: created.id, url: image.url, alt: image.alt, sortOrder: image.sortOrder ?? i })) });
+    }
+    return tx.product.findUnique({ where: { id: created.id }, include: { images: { orderBy: { sortOrder: "asc" } } } });
+  });
   return NextResponse.json(product, { status: 201 });
 }
