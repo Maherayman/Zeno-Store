@@ -14,6 +14,9 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(false);
   const [loadingCart, setLoadingCart] = useState(true);
   const [error, setError] = useState("");
+  const [location, setLocation] = useState<{latitude:number;longitude:number}|null>(null);
+  const [locating, setLocating] = useState(false);
+  function getLocation(){ setLocating(true); setError(""); if(!navigator.geolocation){setError("المتصفح لا يدعم تحديد الموقع");setLocating(false);return} navigator.geolocation.getCurrentPosition(p=>{setLocation({latitude:p.coords.latitude,longitude:p.coords.longitude});setLocating(false)},()=>{setError("اسمح للموقع من إعدادات المتصفح ثم حاول مرة أخرى.");setLocating(false)},{enableHighAccuracy:true,timeout:10000}); }
 
   useEffect(() => {
     if (status === "loading") return;
@@ -41,7 +44,7 @@ export default function CheckoutPage() {
     const res = await fetch("/api/orders", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ items: items.map(i => ({ productId: i.productId, quantity: i.quantity })), ...form })
+      body: JSON.stringify({ items: items.map(i => ({ productId: i.productId, quantity: i.quantity })), ...form, addressLine1: form.addressLine1 || (location ? "موقع محدد على الخريطة" : ""), latitude: location?.latitude, longitude: location?.longitude })
     });
     const data = await res.json();
     if (!res.ok) { setError(data.error ?? "تعذر إنشاء الطلب"); setLoading(false); return; }
@@ -64,7 +67,8 @@ export default function CheckoutPage() {
     <div className="mx-auto max-w-4xl"><h1 className="text-4xl font-bold">إتمام الطلب</h1>
       <form onSubmit={submit} className="mt-8 grid gap-8 md:grid-cols-[1fr_300px]">
         <div className="space-y-4">
-          {Object.entries(form).map(([key, value]) => key !== "couponCode" && <input key={key} value={value} onChange={e => setForm({...form, [key]: e.target.value})} placeholder={key === "shippingName" ? "الاسم بالكامل" : key === "shippingPhone" ? "رقم الهاتف" : key === "addressLine1" ? "العنوان بالتفصيل" : key === "city" ? "المدينة" : key === "governorate" ? "المحافظة" : "ملاحظات"} className="w-full rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-3 outline-none focus:border-amber-400" required={!["notes"].includes(key)} />)}
+          <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-4"><p className="font-semibold">📍 مكان التوصيل</p><p className="mt-1 text-sm text-zinc-400">{location ? `تم تحديد موقعك: ${location.latitude.toFixed(5)}, ${location.longitude.toFixed(5)}` : "ممكن تحدد مكانك بدل كتابة العنوان بالتفصيل."}</p><button type="button" onClick={getLocation} className="mt-3 rounded-xl border border-amber-400 px-4 py-2 text-amber-300">{locating ? "جاري تحديد الموقع..." : location ? "تحديث موقعي" : "حدد موقعي على الخريطة"}</button></div>
+          {Object.entries(form).map(([key, value]) => key !== "couponCode" && <input key={key} value={value} onChange={e => setForm({...form, [key]: e.target.value})} placeholder={key === "shippingName" ? "الاسم بالكامل" : key === "shippingPhone" ? "رقم الهاتف" : key === "addressLine1" ? "العنوان بالتفصيل" : key === "city" ? "المدينة" : key === "governorate" ? "المحافظة" : "ملاحظات"} className="w-full rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-3 outline-none focus:border-amber-400" required={!["notes","addressLine1","city","governorate"].includes(key)} />)}
           <input value={form.couponCode} onChange={e => setForm({...form, couponCode: e.target.value})} placeholder="كود الخصم — مثل NEW20" className="w-full rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-3" />
           {error && <p className="text-red-400">{error}</p>}
         </div>
