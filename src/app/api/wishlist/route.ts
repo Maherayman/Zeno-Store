@@ -1,0 +1,6 @@
+import { NextResponse } from "next/server";
+import { auth } from "@/src/auth";
+import { prisma } from "@/src/lib/prisma";
+export async function GET(){const s=await auth();if(!s?.user?.id)return NextResponse.json({error:"Unauthorized"},{status:401});const items=await prisma.wishlistItem.findMany({where:{userId:s.user.id},include:{product:{include:{images:{orderBy:{sortOrder:"asc"}}}}},orderBy:{createdAt:"desc"}});return NextResponse.json(items);}
+export async function POST(req:Request){const s=await auth();if(!s?.user?.id)return NextResponse.json({error:"Unauthorized"},{status:401});const b=await req.json();if(!b.productId)return NextResponse.json({error:"Product required"},{status:400});const item=await prisma.wishlistItem.upsert({where:{userId_productId:{userId:s.user.id,productId:b.productId}},update:{},create:{userId:s.user.id,productId:b.productId}});return NextResponse.json(item);}
+export async function DELETE(req:Request){const s=await auth();if(!s?.user?.id)return NextResponse.json({error:"Unauthorized"},{status:401});const b=await req.json();await prisma.wishlistItem.delete({where:{userId_productId:{userId:s.user.id,productId:b.productId}}});return NextResponse.json({success:true});}
