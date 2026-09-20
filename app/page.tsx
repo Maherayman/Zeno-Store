@@ -1,49 +1,19 @@
-import Image from "next/image";
+"use client";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 
-const featured = [
-  { name: "Aurelius Classic", price: "$189", image: "https://images.unsplash.com/photo-1524805444758-089113d48a6d?auto=format&fit=crop&w=900&q=80" },
-  { name: "Noir Chronograph", price: "$249", image: "https://images.unsplash.com/photo-1547996160-81dfa63595aa?auto=format&fit=crop&w=900&q=80" },
-  { name: "Minimal Steel", price: "$159", image: "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?auto=format&fit=crop&w=900&q=80" }
-];
+type Product={id:string;name:string;slug:string;brand?:string|null;category?:string|null;price:string|number;compareAtPrice?:string|number|null;stock:number;images:{id:string;url:string;alt?:string|null}[]};
 
-export default function Home() {
-  return (
-    <main>
-      <nav className="nav">
-        <div className="brand">ZENO<span>STORE</span></div>
-        <div className="navLinks"><a href="#shop">Shop</a><a href="#feedback">Feedback</a><a href="/login">Account</a><a href="/cart">Cart</a></div>
-      </nav>
-
-      <section className="hero">
-        <div>
-          <p className="eyebrow">TIME, REFINED.</p>
-          <h1>Wear your<br /><em>moment.</em></h1>
-          <p className="heroText">Curated watches with a clean, modern character. Designed to make every second count.</p>
-          <a className="button" href="#shop">Explore watches →</a>
-        </div>
-        <div className="heroCard">
-          <Image src={featured[0].image} alt={featured[0].name} fill priority sizes="(max-width: 768px) 100vw, 50vw" />
-          <div className="heroBadge">NEW COLLECTION</div>
-        </div>
-      </section>
-
-      <section id="shop" className="section">
-        <div className="sectionHead"><div><p className="eyebrow">THE COLLECTION</p><h2>Featured watches</h2></div><a href="/shop">View all →</a></div>
-        <div className="products">
-          {featured.map((product) => (
-            <article className="product" key={product.name}>
-              <div className="productImage"><Image src={product.image} alt={product.name} fill sizes="(max-width: 768px) 90vw, 30vw" /></div>
-              <div className="productMeta"><div><h3>{product.name}</h3><p>Automatic · Stainless steel</p></div><strong>{product.price}</strong></div>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section id="feedback" className="feedback">
-        <p className="eyebrow">CUSTOMER FEEDBACK</p>
-        <blockquote>“The design feels premium without trying too hard. Exactly what I wanted.”</blockquote>
-        <p>— Zeno customer</p>
-      </section>
-    </main>
-  );
+export default function Home(){
+ const {status}=useSession(); const [products,setProducts]=useState<Product[]>([]); const [cartCount,setCartCount]=useState(0); const [wishCount,setWishCount]=useState(0);
+ useEffect(()=>{fetch("/api/products?featured=true").then(r=>r.ok?r.json():[]).then(setProducts);},[]);
+ useEffect(()=>{if(status==="authenticated"){fetch("/api/cart").then(r=>r.ok?r.json():{items:[]}).then(d=>setCartCount((d.items??[]).reduce((n:any,x:any)=>n+x.quantity,0)));fetch("/api/wishlist").then(r=>r.ok?r.json():{items:[]}).then(d=>setWishCount((d.items??[]).length));}else if(status==="unauthenticated"){const c=JSON.parse(localStorage.getItem("zeno-cart")??"[]");setCartCount(c.reduce((n:any,x:any)=>n+x.quantity,0));}},[status]);
+ return <main className="home">
+  <nav className="nav"><Link href="/" className="brand">ZENO<span>STORE</span></Link><div className="navLinks"><Link href="/shop">Shop</Link><Link href="/wishlist">♡ {wishCount>0&&wishCount}</Link><Link href="/cart">Cart {cartCount>0&&`(${cartCount})`}</Link>{status==="authenticated"?<Link href="/admin">Account</Link>:<Link href="/login">Login</Link>}</div></nav>
+  <section className="hero"><div><p className="eyebrow">TIME, REFINED.</p><h1>Wear your<br/><em>moment.</em></h1><p className="heroText">ساعات مختارة بعناية بتصميم عصري وأناقة هادئة. اختار ساعتك وخلي كل لحظة ليها طابعها.</p><Link className="button" href="/shop">تصفح الساعات →</Link></div><div className="heroCard">{products[0]?.images[0]?<img src={products[0].images[0].url} alt={products[0].name}/>:<div className="heroFallback">ZENO</div>}<div className="heroBadge">NEW COLLECTION</div></div></section>
+  <section className="section"><div className="sectionHead"><div><p className="eyebrow">THE COLLECTION</p><h2>اختار ساعتك</h2></div><Link href="/shop">عرض الكل →</Link></div><div className="products">{products.slice(0,3).map(p=><Link href={"/shop/"+p.slug} className="product" key={p.id}><div className="productImage">{p.images[0]?<img src={p.images[0].url} alt={p.name}/>:<div className="heroFallback">ZENO</div>}<span className="wishlistHint">♡</span></div><div className="productMeta"><div><h3>{p.name}</h3><p>{p.brand??p.category??"Zeno Watch"}</p></div><strong>{Number(p.price).toLocaleString("en-EG")} EGP</strong></div></Link>)}</div></section>
+  <section className="promo"><p className="eyebrow">LIMITED OFFER</p><h2>خصم 20% على أول طلب</h2><p>استخدم الكود <b>NEW20</b> عند إتمام الطلب.</p><Link className="button light" href="/shop">Shop the offer →</Link></section>
+  <section className="feedback"><p className="eyebrow">CUSTOMER FEEDBACK</p><blockquote>“تصميم راقي، جودة ممتازة، والساعة شكلها أفخم من الصور.”</blockquote><p>— Zeno customer</p></section>
+ </main>;
 }
