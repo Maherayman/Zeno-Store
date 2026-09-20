@@ -17,7 +17,7 @@
     "react": "latest",
     "react-dom": "latest",
     "zod": "latest",
-    "@prisma/client": "latest",
+    "@prisma/client": "6.16.2",
     "next-auth": "latest"
   },
   "devDependencies": {
@@ -28,7 +28,7 @@
     "eslint-config-next": "latest",
     "typescript": "latest",
     "tailwindcss": "latest",
-    "prisma": "latest",
+    "prisma": "6.16.2",
     "tsx": "latest",
     "@tailwindcss/postcss": "latest"
   }
