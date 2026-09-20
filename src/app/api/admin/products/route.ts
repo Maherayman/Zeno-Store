@@ -1,12 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/src/lib/prisma";
 import { productSchema } from "@/src/lib/validations";
+import { auth } from "@/src/auth";
+
+async function requireManager() {
+  const session = await auth();
+  if (!session?.user || !["ADMIN", "MANAGER"].includes(session.user.role)) return null;
+  return session;
+}
+
+export async function GET() {
+  if (!await requireManager()) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const products = await prisma.product.findMany({
+    include: { images: { orderBy: { sortOrder: "asc" } } },
+    orderBy: { createdAt: "desc" }
+  });
+  return NextResponse.json(products);
+}
 
 export async function POST(request: NextRequest) {
-  const parsed = productSchema.safeParse(await request.json());
-  if (!parsed.success) {
-    return NextResponse.json({ error: "Invalid product data", details: parsed.error.flatten() }, { status: 400 });
-  }
+  const session = await requireManager();
+  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const body = await request.json();
+  const parsed = productSchema.safeParse(body);
+  if (!parsed.success) return NextResponse.json({ error: "Invalid product data", details: parsed.error.flatten() }, { status: 400 });
+
   const product = await prisma.product.create({ data: parsed.data });
   return NextResponse.json(product, { status: 201 });
 }
