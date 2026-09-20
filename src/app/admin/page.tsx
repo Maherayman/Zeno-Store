@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 type Stats = {
   orders: number; products: number; customers: number; pendingReviews: number;
   revenue: number;
+  recentOrders: { id:string; orderNumber:string; total:string|number; status:string; createdAt:string; user?:{name?:string|null;email?:string|null}|null }[];
+  topProducts: { productId:string|null; _sum:{quantity:number|null} }[];
   lowStockProducts: { id: string; name: string; sku: string; stock: number; lowStockAt: number }[];
 };
 
@@ -39,6 +41,9 @@ export default function AdminPage() {
         <article><span>Revenue</span><strong>{stats ? stats.revenue.toLocaleString() : "—"} EGP</strong><p>Non-cancelled orders</p></article>
       </section>
 
+
+      {stats && <section className="adminCard"><div className="editorTitle"><div><h2>Recent orders</h2><p>آخر الطلبات غير الملغاة.</p></div></div><div className="adminTable"><div className="tableRow tableHead"><span>Order</span><span>Customer</span><span>Status</span><span>Total</span></div>{stats.recentOrders.map(o=><div className="tableRow" key={o.id}><strong>{o.orderNumber}</strong><span>{o.user?.name||o.user?.email||"Customer"}</span><span>{o.status}</span><span>{Number(o.total).toLocaleString()} EGP</span></div>)}</div></section>}
+      {stats && <section className="adminCard"><div className="editorTitle"><div><h2>Top selling products</h2><p>حسب إجمالي الكمية المباعة.</p></div></div>{stats.topProducts.length===0?<p>لسه مفيش مبيعات.</p>:<div className="adminTable">{stats.topProducts.map((p,i)=><div className="tableRow" key={p.productId||i}><strong>#{i+1}</strong><span>{p.productId}</span><span>Sold</span><span>{p._sum.quantity??0}</span></div>)}</div>}</section>}
       <section className="adminCard">
         <div className="editorTitle">
           <div><h2>Low stock</h2><p>Products at or below the alert threshold.</p></div>
