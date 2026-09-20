@@ -27,3 +27,24 @@
 .adminStockCard>div:last-child{text-align:right}
 .adminStockCard b{font-size:20px;display:block}
 @media(max-width:600px){.adminQuickActions{grid-template-columns:1fr 1fr 1fr}.adminQuickActions .adminAction{padding:10px 5px;font-size:10px}.adminQuickActions .adminAction:first-child{grid-column:span 3}.adminGrid article:nth-child(5){grid-column:span 2}.adminGrid article:nth-child(5) strong{font-size:20px}.adminCard{margin-top:10px}}
+
+.productAdminCards{display:grid;gap:10px}
+.productAdminCard{display:grid;grid-template-columns:92px 1fr;gap:12px;border:1px solid var(--line);border-radius:16px;padding:10px;background:#faf9f5}
+.productAdminImage{position:relative;width:92px;height:112px;border-radius:12px;overflow:hidden;background:var(--card);display:flex;align-items:center;justify-content:center;font-size:32px}
+.productAdminImage img{width:100%;height:100%;object-fit:cover}
+.productAdminImage b,.productAdminImage i{position:absolute;top:7px;font-size:8px;font-style:normal;padding:4px 6px;border-radius:999px;background:#fff}
+.productAdminImage b{left:7px}.productAdminImage i{right:7px}
+.productAdminTitle{display:flex;justify-content:space-between;gap:8px;align-items:start}
+.productAdminTitle strong{font-size:13px}.productAdminTitle span{font-size:9px;color:var(--muted)}
+.productAdminPrice{font-size:14px;font-weight:600;margin:8px 0}
+.productAdminMeta{display:flex;justify-content:space-between;font-size:10px;color:var(--muted)}
+.productAdminActions{margin-top:10px}
+.imageFields{display:grid;gap:8px}
+.imageInput{display:grid;grid-template-columns:70px 1fr;gap:8px;align-items:center;padding:8px;border:1px solid var(--line);border-radius:12px;background:#faf9f5}
+.imagePreview{width:70px;height:70px;border-radius:9px;overflow:hidden;background:var(--card);display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--muted)}
+.imagePreview img{width:100%;height:100%;object-fit:cover}
+.imageInput input{min-width:0}
+.imageActions{grid-column:1/-1;display:flex;gap:5px}
+.uploadButton{display:inline-flex!important;cursor:pointer;align-items:center;justify-content:center}
+.stickySave{position:sticky;bottom:78px;z-index:20;box-shadow:0 6px 20px rgba(0,0,0,.15)}
+@media(max-width:600px){.productAdminCard{grid-template-columns:78px 1fr}.productAdminImage{width:78px;height:100px}.productAdminActions button{flex:1}.imageInput{grid-template-columns:58px 1fr}.imagePreview{width:58px;height:58px}.stickySave{bottom:78px}.imageUploadRow{display:grid;grid-template-columns:1fr 1fr}.imageUploadRow small{grid-column:1/-1}}
