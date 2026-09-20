@@ -1,63 +1,22 @@
 "use client";
-
-import { useEffect, useState } from "react";
+import { useEffect,useMemo,useState } from "react";
 import Link from "next/link";
-
-type Product = {
-  id: string; name: string; slug: string; brand?: string | null; category?: string | null;
-  price: string | number; compareAtPrice?: string | number | null; stock: number;
-  images: { id: string; url: string; alt?: string | null }[];
-};
-
-export default function ShopPage() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [q, setQ] = useState("");
-  const [loading, setLoading] = useState(true);
-
-  async function loadProducts(search = "") {
-    setLoading(true);
-    const res = await fetch(`/api/products${search ? `?q=${encodeURIComponent(search)}` : ""}`);
-    if (res.ok) setProducts(await res.json());
-    setLoading(false);
-  }
-
-  useEffect(() => { loadProducts(); }, []);
-
-  return (
-    <main className="min-h-screen bg-zinc-950 px-5 py-10 text-white">
-      <div className="mx-auto max-w-7xl">
-        <div className="mb-10 flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
-          <div>
-            <p className="mb-2 text-sm uppercase tracking-[0.3em] text-amber-400">Zeno Store</p>
-            <h1 className="text-4xl font-bold md:text-6xl">Our Watches</h1>
-            <p className="mt-3 text-zinc-400">اختار ساعتك من المنتجات المتاحة حاليًا.</p>
-          </div>
-          <form onSubmit={(e) => { e.preventDefault(); loadProducts(q); }} className="flex gap-2">
-            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="ابحث عن ساعة..." className="w-full rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-3 outline-none focus:border-amber-400 md:w-72" />
-            <button className="rounded-xl bg-amber-400 px-5 font-semibold text-black">بحث</button>
-          </form>
-        </div>
-
-        {loading ? <p className="text-zinc-400">جاري تحميل المنتجات...</p> : products.length === 0 ? <p className="text-zinc-400">مفيش منتجات مطابقة.</p> : (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {products.map((product) => (
-              <Link key={product.id} href={`/shop/${product.slug}`} className="group overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900 transition hover:-translate-y-1 hover:border-amber-400/50">
-                <div className="aspect-[4/3] overflow-hidden bg-zinc-800">
-                  {product.images[0] ? <img src={product.images[0].url} alt={product.images[0].alt ?? product.name} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" /> : <div className="flex h-full items-center justify-center text-zinc-500">No image</div>}
-                </div>
-                <div className="p-5">
-                  <p className="text-xs uppercase tracking-widest text-amber-400">{product.brand ?? product.category ?? "Watch"}</p>
-                  <h2 className="mt-2 text-xl font-semibold">{product.name}</h2>
-                  <div className="mt-4 flex items-center justify-between">
-                    <span className="text-2xl font-bold">{Number(product.price).toLocaleString("en-EG")} EGP</span>
-                    <span className="text-sm text-zinc-400">{product.stock > 0 ? `متاح: ${product.stock}` : "نفد"}</span>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-        )}
-      </div>
-    </main>
-  );
+import { useSession } from "next-auth/react";
+type Product={id:string;name:string;slug:string;brand?:string|null;category?:string|null;price:string|number;compareAtPrice?:string|number|null;stock:number;images:{id:string;url:string;alt?:string|null}[]};
+export default function ShopPage(){
+ const {status}=useSession(); const [products,setProducts]=useState<Product[]>([]); const [q,setQ]=useState(""); const [brand,setBrand]=useState("all"); const [category,setCategory]=useState("all"); const [sort,setSort]=useState("featured"); const [wish,setWish]=useState<string[]>([]); const [loading,setLoading]=useState(true);
+ async function load(search=""){setLoading(true);const r=await fetch(`/api/products${search?`?q=${encodeURIComponent(search)}`:""}`);if(r.ok)setProducts(await r.json());setLoading(false)}
+ useEffect(()=>{load()},[]);
+ useEffect(()=>{if(status==="authenticated")fetch("/api/wishlist").then(r=>r.ok?r.json():{items:[]}).then(d=>setWish((d.items??[]).map((x:any)=>x.productId)))},[status]);
+ const brands=useMemo(()=>Array.from(new Set(products.map(p=>p.brand).filter(Boolean))) as string[],[products]);
+ const cats=useMemo(()=>Array.from(new Set(products.map(p=>p.category).filter(Boolean))) as string[],[products]);
+ const visible=useMemo(()=>{let x=products.filter(p=>(brand==="all"||p.brand===brand)&&(category==="all"||p.category===category));return [...x].sort((a,b)=>sort==="price-low"?Number(a.price)-Number(b.price):sort==="price-high"?Number(b.price)-Number(a.price):sort==="name"?a.name.localeCompare(b.name):Number(Boolean(b.compareAtPrice))-Number(Boolean(a.compareAtPrice)))},[products,brand,category,sort]);
+ async function toggleWish(id:string){if(status!=="authenticated"){location.href="/login";return}const on=wish.includes(id);const r=await fetch("/api/wishlist",{method:on?"DELETE":"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({productId:id})});if(r.ok)setWish(on?wish.filter(x=>x!==id):[...wish,id])}
+ async function addCart(p:Product){const current=JSON.parse(localStorage.getItem("zeno-cart")??"[]");const e=current.find((x:any)=>x.productId===p.id);if(e)e.quantity=Math.min(e.quantity+1,p.stock);else current.push({productId:p.id,name:p.name,price:Number(p.price),image:p.images[0]?.url??"",quantity:1});localStorage.setItem("zeno-cart",JSON.stringify(current));if(status==="authenticated")await fetch("/api/cart",{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({items:current.map((x:any)=>({productId:x.productId,quantity:x.quantity}))})})}
+ return <main className="min-h-screen bg-zinc-950 px-5 py-10 text-white"><div className="mx-auto max-w-7xl">
+ <div className="mb-8"><p className="text-sm uppercase tracking-[0.3em] text-amber-400">Zeno Store</p><h1 className="mt-2 text-4xl font-bold md:text-6xl">Our Watches</h1><p className="mt-3 text-zinc-400">اكتشف مجموعتنا واختار الساعة المناسبة ليك.</p></div>
+ <div className="grid gap-3 rounded-2xl border border-zinc-800 bg-zinc-900 p-4 md:grid-cols-[1fr_auto_auto_auto]"><form onSubmit={e=>{e.preventDefault();load(q)}} className="flex gap-2"><input value={q} onChange={e=>setQ(e.target.value)} placeholder="ابحث عن ساعة أو براند..." className="min-w-0 flex-1 rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3 outline-none focus:border-amber-400"/><button className="rounded-xl bg-amber-400 px-5 font-semibold text-black">بحث</button></form><select value={brand} onChange={e=>setBrand(e.target.value)} className="rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3"><option value="all">كل البراندات</option>{brands.map(x=><option key={x}>{x}</option>)}</select><select value={category} onChange={e=>setCategory(e.target.value)} className="rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3"><option value="all">كل الأنواع</option>{cats.map(x=><option key={x}>{x}</option>)}</select><select value={sort} onChange={e=>setSort(e.target.value)} className="rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3"><option value="featured">الأبرز</option><option value="price-low">السعر: من الأقل</option><option value="price-high">السعر: من الأعلى</option><option value="name">الاسم</option></select></div>
+ <p className="my-6 text-sm text-zinc-500">{visible.length} منتج</p>
+ {loading?<p className="text-zinc-400">جاري تحميل المنتجات...</p>:!visible.length?<p className="rounded-2xl border border-zinc-800 p-10 text-center text-zinc-400">مفيش منتجات مطابقة.</p>:<div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">{visible.map(p=>{const discount=p.compareAtPrice?Math.round((1-Number(p.price)/Number(p.compareAtPrice))*100):0;return <article key={p.id} className="group overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900"><div className="relative aspect-[4/3] overflow-hidden bg-zinc-800"><Link href={"/shop/"+p.slug}>{p.images[0]?<img src={p.images[0].url} alt={p.images[0].alt??p.name} className="h-full w-full object-cover transition duration-500 group-hover:scale-105"/>:<div className="flex h-full items-center justify-center text-zinc-500">No image</div>}</Link><button onClick={()=>toggleWish(p.id)} className="absolute right-3 top-3 rounded-full bg-white/95 px-3 py-2 text-xl text-black">{wish.includes(p.id)?"♥":"♡"}</button>{discount>0&&<span className="absolute left-3 top-3 rounded-full bg-amber-400 px-3 py-1 text-xs font-bold text-black">-{discount}%</span>}</div><div className="p-5"><p className="text-xs uppercase tracking-widest text-amber-400">{p.brand??p.category??"Watch"}</p><Link href={"/shop/"+p.slug}><h2 className="mt-2 text-xl font-semibold">{p.name}</h2></Link><div className="mt-4 flex items-end gap-2"><strong className="text-2xl">{Number(p.price).toLocaleString("en-EG")} EGP</strong>{p.compareAtPrice&&<del className="text-sm text-zinc-500">{Number(p.compareAtPrice).toLocaleString("en-EG")}</del>}</div><p className="mt-2 text-sm text-zinc-400">{p.stock>0?`متاح في المخزون: ${p.stock}`:"نفد من المخزون"}</p><button disabled={!p.stock} onClick={()=>addCart(p)} className="mt-4 w-full rounded-xl bg-amber-400 px-4 py-3 font-bold text-black disabled:opacity-40">أضف للسلة</button></div></article>})}</div>}
+ </div></main>
 }
