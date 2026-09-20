@@ -31,7 +31,7 @@ export default function LoginPage() {
     }
 
     const callbackUrl = searchParams.get("callbackUrl");
-    router.push(callbackUrl?.startsWith("/") ? callbackUrl : "/admin");
+    router.push(callbackUrl?.startsWith("/") ? callbackUrl : "/account");
     router.refresh();
   }
 
