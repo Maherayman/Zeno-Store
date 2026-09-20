@@ -21,6 +21,7 @@ export default function ProductPage() {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
   const { status } = useSession();
+  const [wishlisted, setWishlisted] = useState(false);
 
   useEffect(() => {
     fetch(`/api/products/${encodeURIComponent(params.slug)}`)
@@ -30,6 +31,10 @@ export default function ProductPage() {
   }, [params.slug]);
 
   if (loading) return <main className="min-h-screen bg-zinc-950 p-10 text-white">جاري تحميل الساعة...</main>;
+  useEffect(() => { if (status === "authenticated") fetch("/api/wishlist").then(r => r.ok ? r.json() : { items: [] }).then(d => setWishlisted((d.items ?? []).some((x: any) => x.productId === product?.id))); }, [status, product?.id]);
+
+  async function toggleWishlist() { if (status !== "authenticated") { router.push("/login"); return; } const method = wishlisted ? "DELETE" : "POST"; const res = await fetch("/api/wishlist", { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ productId: product.id }) }); if (res.ok) setWishlisted(!wishlisted); }
+
   if (!product) return <main className="min-h-screen bg-zinc-950 p-10 text-white">الساعة غير موجودة.</main>;
 
   const addToCart = async () => {
@@ -68,7 +73,7 @@ export default function ProductPage() {
               <span className="w-10 text-center">{quantity}</span>
               <button disabled={quantity >= product.stock} onClick={() => setQuantity(q => q + 1)} className="px-4 py-3 disabled:opacity-40">+</button>
             </div>
-            <button disabled={!product.stock} onClick={addToCart} className="flex-1 rounded-xl bg-amber-400 px-6 py-3 font-bold text-black disabled:cursor-not-allowed disabled:opacity-40">أضف للسلة</button>
+            <div className="flex gap-3"><button onClick={toggleWishlist} className="rounded-xl border border-zinc-700 px-5 py-3 text-2xl" aria-label="المفضلة">{wishlisted ? "♥" : "♡"}</button><button disabled={!product.stock} onClick={addToCart} className="flex-1 rounded-xl bg-amber-400 px-6 py-3 font-bold text-black disabled:cursor-not-allowed disabled:opacity-40">أضف للسلة</button>
           </div>
           {message && <p className="mt-3 text-sm text-emerald-400">{message}</p>}
           <button onClick={() => router.push("/cart")} className="mt-3 rounded-xl border border-zinc-700 px-6 py-3">عرض السلة</button>
