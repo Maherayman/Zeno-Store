@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { createHash } from "node:crypto";
+import { hashPassword } from "../src/lib/password";
 
 const prisma = new PrismaClient();
 const email = process.env.ADMIN_EMAIL?.toLowerCase().trim();
@@ -7,7 +7,7 @@ const password = process.env.ADMIN_PASSWORD;
 
 if (!email || !password) throw new Error("Set ADMIN_EMAIL and ADMIN_PASSWORD first.");
 
-const passwordHash = createHash("sha256").update(password).digest("hex");
+const passwordHash = hashPassword(password);
 
 await prisma.user.upsert({
   where: { email },
