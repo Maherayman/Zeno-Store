@@ -12,6 +12,8 @@ const orderSchema = z.object({
   city: z.string().optional(),
   governorate: z.string().optional(),
   notes: z.string().optional(),
+  latitude: z.number().min(-90).max(90).optional(),
+  longitude: z.number().min(-180).max(180).optional(),
   couponCode: z.string().trim().optional()
 });
 
@@ -69,7 +71,7 @@ export async function POST(request: NextRequest) {
           orderNumber, userId: session.user.id, couponId, subtotal, discount, shippingFee, total,
           shippingName: data.shippingName, shippingPhone: data.shippingPhone,
           addressLine1: data.addressLine1, addressLine2: data.addressLine2,
-          city: data.city, governorate: data.governorate, notes: data.notes,
+          city: data.city, governorate: data.governorate, notes: data.notes, latitude: data.latitude, longitude: data.longitude,
           items: { create: orderItems }
         },
         include: { items: true }
