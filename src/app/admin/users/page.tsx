@@ -5,7 +5,11 @@ export default function AdminUsersPage(){
  const [users,setUsers]=useState<User[]>([]); const [loading,setLoading]=useState(true);
  async function load(){setLoading(true);const r=await fetch("/api/admin/users",{cache:"no-store"});const d=await r.json();if(r.ok)setUsers(d);setLoading(false);}
  useEffect(()=>{load()},[]);
- return <main className="adminPage"><header className="adminTop"><div><p className="eyebrow">CUSTOMERS</p><h1>Customers</h1><p>View registered customers and their activity.</p></div><button className="adminSecondary" onClick={load}>Refresh</button></header>
- <div className="adminTable"><div className="tableRow tableHead"><span>Customer</span><span>Contact</span><span>Orders</span><span>Reviews</span><span>Joined</span></div>
- {loading?<p>Loading customers...</p>:users.map(u=><div className="tableRow" key={u.id}><strong>{u.name||"Customer"}</strong><span>{u.email}{u.phone&&<><br/>{u.phone}</>}</span><span>{u._count.orders}</span><span>{u._count.reviews}</span><span>{new Date(u.createdAt).toLocaleDateString()}</span></div>)}{!loading&&!users.length&&<p>No customers yet.</p>}</div></main>;
+ return <main className="adminPage"><header className="adminTop"><div><p className="eyebrow">CUSTOMERS</p><h1>العملاء</h1><p>العملاء المسجلين ونشاطهم داخل المتجر.</p></div><button className="adminSecondary" onClick={load}>تحديث</button></header>
+ <section className="customerStats"><div><strong>{users.length}</strong><span>إجمالي العملاء</span></div><div><strong>{users.reduce((n,u)=>n+u._count.orders,0)}</strong><span>إجمالي الطلبات</span></div><div><strong>{users.reduce((n,u)=>n+u._count.reviews,0)}</strong><span>التقييمات</span></div></section>
+ {loading?<div className="adminCard"><p>جاري تحميل العملاء...</p></div>:<div className="customerCards">{users.map(u=><article className="customerCard" key={u.id}>
+ <div className="customerAvatar">{(u.name||"C").charAt(0).toUpperCase()}</div><div className="customerInfo"><strong>{u.name||"عميل"}</strong><span>{u.email}</span>{u.phone&&<span>📞 {u.phone}</span>}<small>انضم {new Date(u.createdAt).toLocaleDateString("ar-EG")}</small></div>
+ <div className="customerCounts"><b>{u._count.orders}</b><span>طلبات</span><b>{u._count.reviews}</b><span>تقييمات</span></div>
+ </article>)}{!users.length&&<div className="adminCard"><p>مفيش عملاء لسه.</p></div>}</div>}
+ </main>;
 }
