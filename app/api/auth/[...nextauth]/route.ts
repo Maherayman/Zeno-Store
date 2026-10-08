@@ -1,1 +1,1 @@
-export * from "@/src/app/api/auth/[...nextauth]/route.ts";
+export * from "@/src/app/api/auth/[...nextauth]/route";
