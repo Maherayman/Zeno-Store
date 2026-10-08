@@ -1,15 +1,13 @@
-import NextAuth from "next-auth";
+import { getToken } from "next-auth/jwt";
 import { NextRequest, NextResponse } from "next/server";
-import authConfig from "@/src/auth.config";
 
-const { auth } = NextAuth(authConfig);
-
-export default auth((request: NextRequest) => {
-  const role = request.auth?.user?.role;
-  if (!request.auth || !["ADMIN", "MANAGER"].includes(role ?? "")) {
+export async function middleware(request: NextRequest) {
+  const token = await getToken({ req: request });
+  const role = typeof token?.role === "string" ? token.role : "";
+  if (!token || !["ADMIN", "MANAGER"].includes(role)) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
   return NextResponse.next();
-});
+}
 
 export const config = { matcher: ["/admin/:path*"] };
