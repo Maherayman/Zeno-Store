@@ -1,1 +1,1 @@
-export { default } from "@/src/app/admin/layout.tsx";
+export { default } from "@/src/app/admin/layout";
