@@ -1,0 +1,1 @@
+export { default } from "@/src/app/account/orders/[id]/page.tsx";
