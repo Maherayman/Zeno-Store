@@ -1,0 +1,1 @@
+export { default } from "@/src/app/api/products/route.ts";
