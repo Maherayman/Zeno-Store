@@ -1,0 +1,1 @@
+export { default } from "@/src/app/api/wishlist/route.ts";
