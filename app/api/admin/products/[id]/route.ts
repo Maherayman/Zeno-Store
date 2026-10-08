@@ -1,0 +1,1 @@
+export * from "@/src/app/api/admin/products/[id]/route.ts";
