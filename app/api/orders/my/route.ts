@@ -1,1 +1,1 @@
-export * from "@/src/app/api/orders/my/route.ts";
+export * from "@/src/app/api/orders/my/route";
