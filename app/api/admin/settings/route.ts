@@ -1,1 +1,1 @@
-export * from "@/src/app/api/admin/settings/route.ts";
+export * from "@/src/app/api/admin/settings/route";
