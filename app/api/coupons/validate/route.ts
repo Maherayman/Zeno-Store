@@ -1,0 +1,1 @@
+export * from "@/src/app/api/coupons/validate/route.ts";
