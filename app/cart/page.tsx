@@ -1,1 +1,1 @@
-export { default } from "@/src/app/cart/page.tsx";
+export { default } from "@/src/app/cart/page";
