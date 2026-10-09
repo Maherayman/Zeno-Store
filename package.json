@@ -18,7 +18,7 @@
     "react-dom": "latest",
     "zod": "latest",
     "@prisma/client": "6.16.2",
-    "next-auth": "latest"
+    "next-auth": "5.0.0-beta.32"
   },
   "devDependencies": {
     "@types/node": "latest",
