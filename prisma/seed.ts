@@ -16,7 +16,7 @@ async function main() {
 
   await prisma.coupon.upsert({
     where: { code: "NEW20" },
-    update: { isActive: true, discountValue: 20 },
+    update: {},
     create: {
       code: "NEW20",
       discountType: DiscountType.PERCENTAGE,
@@ -66,7 +66,7 @@ async function main() {
   for (const product of products) {
     await prisma.product.upsert({
       where: { sku: product.sku },
-      update: product,
+      update: {},
       create: product
     });
   }
