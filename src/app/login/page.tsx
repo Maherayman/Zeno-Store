@@ -1,10 +1,10 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, Suspense, useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
@@ -17,22 +17,26 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
 
-    const result = await signIn("credentials", {
-      email,
-      password,
-      redirect: false
-    });
+    try {
+      const result = await signIn("credentials", {
+        email,
+        password,
+        redirect: false
+      });
 
-    setLoading(false);
+      if (!result || result.error) {
+        setError("Email or password is incorrect.");
+        return;
+      }
 
-    if (!result || result.error) {
-      setError("Email or password is incorrect.");
-      return;
+      const callbackUrl = searchParams.get("callbackUrl");
+      router.push(callbackUrl?.startsWith("/") ? callbackUrl : "/account");
+      router.refresh();
+    } catch {
+      setError("Unable to sign in right now. Please try again.");
+    } finally {
+      setLoading(false);
     }
-
-    const callbackUrl = searchParams.get("callbackUrl");
-    router.push(callbackUrl?.startsWith("/") ? callbackUrl : "/account");
-    router.refresh();
   }
 
   return (
@@ -50,5 +54,22 @@ export default function LoginPage() {
         <small>Use your Zeno Store account credentials.</small>
       </div>
     </main>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="authPage">
+          <div className="authCard">
+            <p className="eyebrow">WELCOME BACK</p>
+            <h1>Loading sign in…</h1>
+          </div>
+        </main>
+      }
+    >
+      <LoginForm />
+    </Suspense>
   );
 }
