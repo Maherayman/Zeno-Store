@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/src/auth";
 import { prisma } from "@/src/lib/prisma";
@@ -21,7 +22,10 @@ export async function POST(request: NextRequest) {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "يجب تسجيل الدخول أولًا" }, { status: 401 });
 
-  const parsed = orderSchema.safeParse(await request.json());
+  let body: unknown;
+  try { body = await request.json(); }
+  catch { return NextResponse.json({ error: "صيغة الطلب غير صحيحة" }, { status: 400 }); }
+  const parsed = orderSchema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: "بيانات الطلب غير صحيحة", details: parsed.error.flatten() }, { status: 400 });
 
   const data = parsed.data;
@@ -56,7 +60,7 @@ export async function POST(request: NextRequest) {
 
       const shippingFee = 0;
       const total = Math.max(0, subtotal - discount) + shippingFee;
-      const orderNumber = `ZN-${Date.now().toString().slice(-8)}`;
+      const orderNumber = `ZN-${randomUUID().replace(/-/g, "").slice(0, 12).toUpperCase()}`;
 
       for (const item of data.items) {
         const result = await tx.product.updateMany({
