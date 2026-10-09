@@ -1,1 +1,1 @@
-export { default } from "@/src/app/api/products/route";
+export { GET } from "@/src/app/api/products/route";
